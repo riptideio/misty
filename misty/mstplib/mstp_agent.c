@@ -72,7 +72,7 @@ void *receiver_thread(void *arg)
     uint16_t pdu_len = 0;
     BACNET_ADDRESS src = { 0 }; /* address where message came from */
     MSTP_DATA *m;
-    unsigned timeout = 100;     /* milliseconds */
+    unsigned timeout = 1000;     /* milliseconds */
     port_info_t *port_info_ptr;
     unsigned char buf[1024];
     int ret;
@@ -113,7 +113,7 @@ void *receiver_thread(void *arg)
                 perror("sendto failed");
             }
         }
-        sleep(0.5);
+
     }
     log_printf("Receive Thread exited for %s\n", port_info_ptr->path);
     return (0);
