@@ -6,8 +6,12 @@ The misty project helps build [bacpypes](https://github.com/JoelBender/bacpypes)
 
 # Table of Contents
 
-
-[TOC]
+- [How does this Work ?](#how-does-this-work-)
+- [Installation and Usage](#installation-and-usage)
+- [Testing MSTP  Applications](#testing-mstp--applications)
+- [Porting bacpypes IP Apps to MSTP](#porting-bacpypes-ip-apps-to-mstp)
+- [Limitations](#limitations)
+- [Snap build, installation and Usage](#snap-build-installation-and-usage)
 
 # How does this Work ?
 
