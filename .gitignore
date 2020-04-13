@@ -1,0 +1,15 @@
+*.pyc
+*.history
+misty/mstplib/libmstp.a
+misty/mstplib/libmstp_agent.so
+build/
+dist/
+snap/.snapcraft/
+misty.egg-info/
+misty_0.0.1_amd64.snap
+parts/
+prime/
+stage/
+wheelhouse/*
+mstp_test
+.idea/
