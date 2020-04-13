@@ -42,7 +42,7 @@ def setup_packages():
         author_email='info@riptideio.com',
         maintainer='Riptide, Inc',
         maintainer_email='raghavan@riptideio.com',
-        url='https://bitbucket.org/riptideio/rtdds',
+        url='https://github.com/riptideio/misty',
         zip_safe = False,
         cmdclass={'bdist_wheel': BinaryDistWheel},
 
