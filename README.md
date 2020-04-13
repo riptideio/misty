@@ -166,19 +166,15 @@ class BacnetClientApplication(MSTPSimpleApplication):
 (3) The Local device object in the MSTPSimpleApplication should be initialised with the additional MSTP interface details. The following shows a typical local object initialisation for a MSTP Simple Application.
 
 ```python
-# make a device object
-this_device = LocalDeviceObject(
-   objectName=args.ini.objectname,
-   objectIdentifier=int(args.ini.objectidentifier),
-   maxApduLengthAccepted=int(args.ini.maxapdulengthaccepted),
-   segmentationSupported=args.ini.segmentationsupported,
-   vendorIdentifier=int(args.ini.vendoridentifier),
-   _interface=args.ini.interface,
-   _mac_address=int(args.ini.address),
-   _max_masters=int(args.ini.max_masters),
-   _baudrate=int(args.ini.baudrate),
-   _maxinfo=int(args.ini.maxinfo)
-)
+ # make a device object
+ mstp_args = {
+     '_address': int(args.ini.address),
+     '_interface':str(args.ini.interface),
+     '_max_masters': int(args.ini.max_masters),
+     '_baudrate': int(args.ini.baudrate),
+     '_maxinfo': int(args.ini.maxinfo),
+ }
+ this_device = LocalDeviceObject(ini=args.ini, **mstp_args)
 ```
 
 The misty/samples directory contains some bacpypes IP applications ported to use the MSTP Network 
