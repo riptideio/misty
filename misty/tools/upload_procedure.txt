@@ -1,0 +1,43 @@
+Instructions for Uploading the wheel
+
+git clone 
+cd misty
+docker run -it -v$PWD:/src quay.io/pypa/manylinux1_x86_64
+
+# now you are in the container
+
+cd /src
+cd /src/misty/mstplib
+make clean_build
+cd /src
+/opt/_internal/cpython-2.7.17-ucs4/bin/python2 setup.py bdist_wheel
+/opt/_internal/cpython-2.7.17-ucs2/bin/python2 setup.py bdist_wheel
+
+exit
+
+# Out of the container
+
+# in your linux
+sudo chown -R riptide:riptide *
+
+# one time installation
+sudo apt-get install patchelf
+pip install auditwheel twine
+
+cd dist/wheelhouse
+
+auditwheel repair mty-0.0.3-cp27-cp27m-linux_x86_64.whl 
+
+twine upload --verbose --repository pypi wheelhouse/*
+
+
+
+
+
+
+
+
+
+
+
+

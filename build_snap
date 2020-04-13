@@ -1,0 +1,7 @@
+
+cd misty/mstplib
+make clean
+make
+cd ../..
+snapcraft clean
+snapcraft

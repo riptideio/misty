@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# This builds a python 2.7 package that can be uploaded to pypi
+
+./clean
+
+docker run -it --user $(id -u):$(id -g) -v$PWD:/src quay.io/pypa/manylinux1_x86_64 /bin/bash /src/misty/tools/gen_whl
+auditwheel repair dist/*mu-*.whl
+auditwheel repair dist/*m-*.whl
+echo "=================================================="
+echo "Run the following command to upload to pypi"
+echo "twine upload -r pypi wheelhouse/*.whl dist/*.tar.gz"
+
+

@@ -1,0 +1,130 @@
+diff -r bacnet-stack-0.8.4/include/mstp.h ../bacnet-stack-0.8.4/include/mstp.h
+169a170,175
+>     unsigned int rt_recvd_token;
+>     unsigned int rt_recv_errors;
+>     unsigned int rt_invalid_frames;
+>     unsigned int bytes_xmit;
+>     unsigned int bytes_rcvd;
+> 
+diff -r bacnet-stack-0.8.4/Makefile ../bacnet-stack-0.8.4/Makefile
+11a12,13
+> MAKE=make -j1
+> 
+23,24c25,26
+< #BACDL_DEFINE=-DBACDL_MSTP=1
+< BACDL_DEFINE?=-DBACDL_BIP=1
+---
+> BACDL_DEFINE=-DBACDL_MSTP=1
+> #BACDL_DEFINE?=-DBACDL_BIP=1
+diff -r bacnet-stack-0.8.4/ports/linux/rs485.c ../bacnet-stack-0.8.4/ports/linux/rs485.c
+89c89
+< static char *RS485_Port_Name = "/dev/ttyUSB0";
+---
+> static char *RS485_Port_Name = "/dev/ttyS2";
+382d381
+< 
+421c420,426
+<             tcdrain(RS485_Handle);
+---
+>             int out;
+>             ioctl(RS485_Handle, TIOCOUTQ, &out);
+>             if(out > 1024){
+>                 printf("Going into a Lock in tcdrain %d \n",out);
+>                 tcdrain(RS485_Handle);
+>                 printf("Came out of Lock in tcdrain\n");
+>             }
+446c451,459
+<             tcdrain(poSharedData->RS485_Handle);
+---
+> 
+>             int out;
+>             ioctl(poSharedData->RS485_Handle, TIOCOUTQ, &out);
+>             if(out > 1024){
+>                 printf("Going into a Lock in tcdrain %d \n",out);
+>                 tcdrain(poSharedData->RS485_Handle);
+>                 printf("Came out of Lock in tcdrain\n");
+>             }
+>             mstp_port->bytes_xmit += written;
+diff -r bacnet-stack-0.8.4/src/debug.c ../bacnet-stack-0.8.4/src/debug.c
+39a40
+> #include <string.h>
+43a45,47
+> static FILE *debug_fp=NULL;
+> static char log_filename[1024];
+> 
+50a55,57
+>     if(debug_fp == NULL){
+>         return;
+>     }
+52c59
+<     vfprintf(stdout, format, ap);
+---
+>     vfprintf(debug_fp, format, ap);
+54c61
+<     fflush(stdout);
+---
+>     fflush(debug_fp);
+65a73,99
+> 
+> void enable_debug_flag(char *fname)
+> {
+>     debug_fp = fopen(fname, "w");
+>     if (debug_fp == NULL){
+>         printf("Unable to open the file %s in write mode\n", fname);
+>         return;
+>     }else{
+>         printf("Logging debug messages in '%s' \n", fname);
+>     }
+>     strcpy(log_filename, fname);
+> }
+> 
+> void status_debug_flag()
+> {
+>     if(debug_fp == NULL){
+>         printf("Debugging disabled\n");
+>     }else{
+>         printf("Debug logging enabled into %s \n",log_filename);
+>     }
+> }
+> 
+> void disable_debug_flag()
+> {
+>     debug_fp = NULL;
+>     printf("Stopped logging of debug messages\n");
+> }
+diff -r bacnet-stack-0.8.4/src/mstp.c ../bacnet-stack-0.8.4/src/mstp.c
+64,67c64,67
+< #undef PRINT_ENABLED_RECEIVE
+< #undef PRINT_ENABLED_RECEIVE_DATA
+< #undef PRINT_ENABLED_RECEIVE_ERRORS
+< #undef PRINT_ENABLED_MASTER
+---
+> #define PRINT_ENABLED_RECEIVE
+> #define PRINT_ENABLED_RECEIVE_DATA
+> #define PRINT_ENABLED_RECEIVE_ERRORS
+> #define PRINT_ENABLED_MASTER
+170a171,172
+> static MSTP_RECEIVE_STATE rt_MSTP_Receive_State = MSTP_RECEIVE_STATE_IDLE;
+> 
+294a297
+>                 mstp_port->bytes_rcvd ++;
+581c584,596
+<     return;
+---
+> 	
+>     if ( (mstp_port->ReceivedValidFrame) || 
+>         (mstp_port->ReceivedValidFrameNotForUs) || 
+>         (mstp_port->ReceivedInvalidFrame) ) {
+>         ;
+>     }else if (mstp_port->receive_state == MSTP_RECEIVE_STATE_IDLE){
+>         if (rt_MSTP_Receive_State == MSTP_RECEIVE_STATE_IDLE){
+>             if(mstp_port->EventCount){
+>                 mstp_port->rt_invalid_frames +=1 ;
+>             }
+>         }
+>     }
+>     rt_MSTP_Receive_State = mstp_port->receive_state;
+632a648
+>                 mstp_port->rt_recv_errors +=1 ;
+652a669
+>                             mstp_port->rt_recvd_token ++;

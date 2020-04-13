@@ -1,0 +1,37 @@
+name:           misty
+version:        0.0.8
+summary:        Misty helps build bacpypes applications that work on MS/TP Networks.
+description: |
+  The misty project helps build bacpypes applications that work on MS/TP Networks.
+  The existing bacpypes BIP (BACnet IP ) applications can be
+  easily ported to to use misty and work on MS/TP Networks.
+confinement:    devmode
+grade:          devel
+
+apps:
+  bc:
+    command: bin/bc --ini $SNAP_COMMON/bac_client.ini
+
+  props:
+    command: usr/bin/vim.basic $SNAP_COMMON/bac_client.ini
+
+parts:
+  bc:
+    plugin:     python
+    python-version: python2
+
+  misty-config:
+    plugin: dump
+    source: misty/samples
+    stage:
+      - etc/default/bac_client.ini
+    organize:
+      bac_client.ini: etc/default/bac_client.ini
+    prime:
+      - etc/default
+
+  dependencies:  # Taskset requires this
+    plugin: nil
+    stage-packages:
+      - libgpm2
+      - vim
