@@ -1,5 +1,5 @@
 name:           misty
-version:        0.0.8
+version:        0.0.9
 summary:        Misty helps build bacpypes applications that work on MS/TP Networks.
 description: |
   The misty project helps build bacpypes applications that work on MS/TP Networks.
@@ -11,6 +11,12 @@ grade:          devel
 apps:
   bc:
     command: bin/bc --ini $SNAP_COMMON/bac_client.ini
+
+  bcmulti:
+    command: bin/bc
+
+  cpini:
+    command: bin/cp_ini
 
   props:
     command: usr/bin/vim.basic $SNAP_COMMON/bac_client.ini

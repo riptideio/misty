@@ -1,17 +1,19 @@
 
-
 #  misty
 
 The misty project helps build [bacpypes](https://github.com/JoelBender/bacpypes)   applications that work on MS/TP Networks. The existing bacpypes BIP (BACnet IP ) applications can be easily ported to to use misty and work on MS/TP Networks.
 
 # Table of Contents
 
-- [How does this Work ?](#how-does-this-work-)
-- [Installation and Usage](#installation-and-usage)
+- [misty](#misty)
+- [Table of Contents](#table-of-contents)
+- [How does this Work ?](#how-does-this-work--)
+- [Installation and Usage for Users](#installation-and-usage-for-users)
+- [Installation and Usage for Developers](#installation-and-usage-for-developers)
 - [Testing MSTP  Applications](#testing-mstp--applications)
 - [Porting bacpypes IP Apps to MSTP](#porting-bacpypes-ip-apps-to-mstp)
 - [Limitations](#limitations)
-- [Snap build, installation and Usage](#snap-build-installation-and-usage)
+- [Snap build, installation and Usage](#snap-build--installation-and-usage)
 
 # How does this Work ?
 
@@ -25,7 +27,72 @@ The following image shows the idea on which the misty is based.
 
 ![misty concept](screenshots/misty_concept.png)
 
-# Installation and Usage
+# Installation and Usage for Users
+
+This section talks about the installation for people who are interested in using misty as a product to interact with the BACnet devices connected on a serial port to the Linux machine. 
+
+(1) Install the misty package in your python environment
+```
+$ pip install misty
+```
+(2) copy the ini file required for running the BACnet client by running the cp_ini command. This copies a template of ini file required for a BACnet client at the specified file location
+```
+$ cp_ini -t client ./bc.ini
+```
+(3) Edit the **bc.ini** file to specify the interface, max_masters, baudrate, maxinfo.  A sample bc.ini is shown below.
+```ini
+[BACpypes]
+objectName: BACClient
+address: 25
+interface:/dev/ttyS5
+max_masters: 127
+baudrate: 38400
+maxinfo:1
+objectIdentifier: 599
+maxApduLengthAccepted: 1024
+segmentationSupported: segmentedBoth
+vendorIdentifier: 15
+foreignPort: 0
+foreignBBMD: 128.253.109.254
+foreignTTL: 30
+```
+(4) Run the BACnet client (bc) program. Execute 'whois' and other commands found by using help
+```
+$ sudo bc --ini ./bc.ini
+Initialized the socket
+mac_address = 25
+max master = 127
+baud rate = 38400
+max info frames = 1
+RS485: Initializing /dev/ttyS5=success!
+MS/TP MAC: 19
+MS/TP Max_Master: 7F
+MS/TP Max_Info_Frames: 1
+mstp_path=/var/tmp/ma_CrAvEt/mstpttyS5
+
+> whois
+pduSource = <Address 8>
+iAmDeviceIdentifier = ('device', 1008)
+maxAPDULengthAccepted = 480
+segmentationSupported = noSegmentation
+vendorID = 28
+pduSource = <Address 9>
+iAmDeviceIdentifier = ('device', 1009)
+maxAPDULengthAccepted = 480
+segmentationSupported = noSegmentation
+vendorID = 28
+
+> help
+
+Documented commands (type help <topic>):
+========================================
+EOF      bugin   discover  gc    iam      mstpstat  rtn    whois
+buggers  bugout  exit      help  mstpdbg  read      shell  write
+```
+
+# Installation and Usage for Developers
+
+This section talks about the installation for people who are interested in learning about misty and experiment with changes. This requires knowledge of Python Programming language and familiarity with Linux operating system as a user.  
 
 (1) Install the bacpypes package in your python environment
 ```
@@ -35,7 +102,7 @@ $ pip install bacpypes==0.18.0
 ```
 $ git clone https://github.com/riptideio/misty.git
 ```
-(3) Make the MSTP Agent library using the following commands. This requires the C compiler and make utilities to be installed. 
+(3) Make the MSTP Agent library using the following commands. This requires the C compiler and make utilities to be installed.
 ```
 $ cd misty/mstplib
 $ make clean_build
@@ -177,7 +244,7 @@ class BacnetClientApplication(MSTPSimpleApplication):
  this_device = LocalDeviceObject(ini=args.ini, **mstp_args)
 ```
 
-The misty/samples directory contains some bacpypes IP applications ported to use the MSTP Network 
+The misty/samples directory contains some bacpypes IP applications ported to use the MSTP Network
 - CommandableMixin
 - ReadProperty
 - ReadPropertyMultiple
