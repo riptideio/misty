@@ -383,7 +383,7 @@ class BacnetClientConsoleCmd(ConsoleCmd):
             # check if the filename is writable
             fname = args[1]
             if not self._is_writable(fname):
-                print(("'{}' is not writable".format(os.path.abspath(fname))))
+                print("'{}' is not writable".format(os.path.abspath(fname)))
                 return
 
             fname = os.path.abspath(fname)

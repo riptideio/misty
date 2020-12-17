@@ -234,8 +234,8 @@ class MSTPDirector(asyncore.dispatcher, Server, ServiceAccessPoint):
             mstp_lib.enable_debug_flag(fname)
 
         if six.PY3:
-            interface_devname_b = bytes(interface_devname, encoding='utf-8')
-            mstp_dir_b=bytes(mstp_dir, encoding='utf-8')
+            interface_devname_b = six.ensure_binary(interface_devname)
+            mstp_dir_b=six.ensure_binary(mstp_dir)
             mstp_lib.init(buf, interface_devname_b, mstp_dir_b)
         else:
             mstp_lib.init(buf, interface_devname, mstp_dir)
