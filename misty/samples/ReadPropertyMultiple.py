@@ -6,6 +6,7 @@ which create ReadPropertyMultipleRequest PDUs, then lines up the coorresponding
 ReadPropertyMultipleACK and prints the value.
 """
 
+from __future__ import absolute_import
 import sys
 
 from bacpypes.debugging import bacpypes_debugging, ModuleLogger

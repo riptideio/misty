@@ -6,6 +6,7 @@ commands which create the related APDUs, then lines up the coorresponding I-Am
 for incoming traffic and prints out the contents.
 """
 
+from __future__ import absolute_import
 import sys
 
 from bacpypes.debugging import bacpypes_debugging, ModuleLogger

@@ -6,6 +6,8 @@ commands which create the related APDUs, then lines up the coorresponding I-Am
 for incoming traffic and prints out the contents.
 """
 
+from __future__ import absolute_import
+from __future__ import print_function
 import sys
 import os
 
@@ -32,6 +34,7 @@ from bacpypes.constructeddata import Any, AnyAtomic
 
 from misty.mstplib import MSTPSimpleApplication
 from bacpypes.local.device import LocalDeviceObject
+from six.moves import range
 
 # some debugging
 _debug = 0
@@ -380,7 +383,7 @@ class BacnetClientConsoleCmd(ConsoleCmd):
             # check if the filename is writable
             fname = args[1]
             if not self._is_writable(fname):
-                print("'{}' is not writable".format(os.path.abspath(fname)))
+                print(("'{}' is not writable".format(os.path.abspath(fname))))
                 return
 
             fname = os.path.abspath(fname)
@@ -493,7 +496,7 @@ class BacnetClientConsoleCmd(ConsoleCmd):
             sys.stdout.flush()
 
             if self._first_req:
-                self._instance_list = range(1, value+1)
+                self._instance_list = list(range(1, value+1))
                 self._first_req = False
 
                 # fire off another request

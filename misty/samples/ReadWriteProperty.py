@@ -8,6 +8,7 @@ coorresponding ReadPropertyACK and prints the value.  For 'write' commands it
 will create WritePropertyRequst PDUs and prints out a simple acknowledgement.
 """
 
+from __future__ import absolute_import
 import sys
 
 from bacpypes.debugging import bacpypes_debugging, ModuleLogger

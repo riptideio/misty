@@ -5,6 +5,7 @@ This sample application shows how to extend the basic functionality of a device
 to support the ReadPropertyMultiple service.
 """
 
+from __future__ import absolute_import
 import random
 
 from bacpypes.debugging import bacpypes_debugging, ModuleLogger
