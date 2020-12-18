@@ -90,6 +90,11 @@ EOF      bugin   discover  gc    iam      mstpstat  rtn    whois
 buggers  bugout  exit      help  mstpdbg  read      shell  write
 ```
 
+(5) Apart from the bacnet client (bc) program, the other available programs from the misty package are the following. All of them use ini file supplied on the command line.
+
+bs (bacnet server), WhoIsIAm, ReadWriteProperty, ReadPropertyMultipleServer, ReadPropertyMultiple. ReadProperty, CommandableMixin
+
+
 # Installation and Usage for Developers
 
 This section talks about the installation for people who are interested in learning about misty and experiment with changes. This requires knowledge of Python Programming language and familiarity with Linux operating system as a user.  
