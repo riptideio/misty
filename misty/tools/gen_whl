@@ -3,8 +3,8 @@ cd /src
 cd misty/mstplib
 make clean_build
 cd /src
-/opt/_internal/cpython-2.7.17-ucs4/bin/python2 setup.py bdist_wheel
-/opt/_internal/cpython-2.7.17-ucs4/bin/python2 setup.py sdist
-/opt/_internal/cpython-2.7.17-ucs2/bin/python2 setup.py bdist_wheel
-/opt/_internal/cpython-2.7.17-ucs2/bin/python2 setup.py sdist
+/opt/_internal/cpython-2.7.18-ucs4/bin/python2 setup.py bdist_wheel
+/opt/_internal/cpython-2.7.18-ucs4/bin/python2 setup.py sdist
+/opt/_internal/cpython-2.7.18-ucs2/bin/python2 setup.py bdist_wheel
+/opt/_internal/cpython-2.7.18-ucs2/bin/python2 setup.py sdist
 
