@@ -4,6 +4,7 @@
 Rebuilt Commandable
 """
 
+from __future__ import absolute_import
 from bacpypes.debugging import ModuleLogger
 from bacpypes.consolelogging import ConfigArgumentParser
 

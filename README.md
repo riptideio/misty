@@ -227,7 +227,7 @@ class BacnetClientApplication(BIPSimpleApplication):
 would be changed to
 
 ```python
-from mstplib import MSTPSimpleApplication
+from misty.mstplib import MSTPSimpleApplication
 class BacnetClientApplication(MSTPSimpleApplication):
 ```
 (3) The Local device object in the MSTPSimpleApplication should be initialised with the additional MSTP interface details. The following shows a typical local object initialisation for a MSTP Simple Application.

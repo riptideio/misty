@@ -3,9 +3,11 @@ Copyright (c) 2018 by Riptide I/O
 All rights reserved.
 """
 
+from __future__ import absolute_import
+from __future__ import print_function
 import asyncore
 import socket
-import Queue as queue
+import six.moves.queue as queue
 import warnings
 import binascii
 import os
@@ -14,6 +16,7 @@ import struct
 import atexit
 import glob
 import tempfile
+import six
 from ctypes import cdll
 
 
@@ -230,8 +233,13 @@ class MSTPDirector(asyncore.dispatcher, Server, ServiceAccessPoint):
             fname = self.localDevice._mstpdbgfile
             mstp_lib.enable_debug_flag(fname)
 
+        if six.PY3:
+            interface_devname_b = six.ensure_binary(interface_devname)
+            mstp_dir_b=six.ensure_binary(mstp_dir)
+            mstp_lib.init(buf, interface_devname_b, mstp_dir_b)
+        else:
+            mstp_lib.init(buf, interface_devname, mstp_dir)
 
-        mstp_lib.init(buf, interface_devname, mstp_dir)
 
         # to ensure that the server is ready
         time.sleep(0.5)
@@ -333,9 +341,12 @@ class MSTPDirector(asyncore.dispatcher, Server, ServiceAccessPoint):
             if _debug: MSTPDirector._debug("Sending MSTP PDU={}".format(str(pdu)))
 
             # format is 0 for data, src_mac, payload
-            mstpData = chr(int(str(pdu.pduDestination))) + pdu.pduData
+            if six.PY3:
+                pdu.pduData.insert(0, int(str(pdu.pduDestination)))
+            else:
+                mstpData = chr(int(str(pdu.pduDestination))) + pdu.pduData
+                pdu.pduData = mstpData
 
-            pdu.pduData = mstpData
 
             sent = self.socket.send(pdu.pduData) # , pdu.pduDestination)
             if _debug: MSTPDirector._debug("    - sent %d octets to %s", sent, pdu.pduDestination)
