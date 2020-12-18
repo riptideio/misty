@@ -75,8 +75,8 @@ def setup_packages():
         ],
         ext_modules=EmptyListWithLength(),
         install_requires=[
-            "bacpypes==0.18.0",
-            "six==1.15.0"
+            "bacpypes>=0.18.0",
+            "six>=1.15.0"
         ]
     )
     setup(**meta_data)
