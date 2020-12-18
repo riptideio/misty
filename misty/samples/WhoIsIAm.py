@@ -117,7 +117,7 @@ class WhoIsIAmConsoleCmd(ConsoleCmd):
             if _debug: WhoIsIAmConsoleCmd._debug("    - iocb: %r", iocb)
 
             # give it to the application
-            this_application.request_io(iocb)
+            this_application.request(request)
 
         except Exception as err:
             WhoIsIAmConsoleCmd._exception("exception: %r", err)
@@ -144,7 +144,7 @@ class WhoIsIAmConsoleCmd(ConsoleCmd):
             if _debug: WhoIsIAmConsoleCmd._debug("    - iocb: %r", iocb)
 
             # give it to the application
-            this_application.request_io(iocb)
+            this_application.request(request)
 
         except Exception as err:
             WhoIsIAmConsoleCmd._exception("exception: %r", err)
