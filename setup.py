@@ -33,7 +33,7 @@ def setup_packages():
 
     meta_data = dict(
         name="misty",
-        version='0.0.10',
+        version='0.0.11',
         description='MSTP support for bacpypes',
         scripts=[
             'bin/CommandableMixin',
@@ -64,15 +64,6 @@ def setup_packages():
             ]
         },
         packages=['misty', 'misty.mstplib'],
-        data_files=[
-            (
-                (os.path.join(sys.prefix, 'cfg')),
-                [
-                    'misty/samples/bac_server.ini',
-                    'misty/samples/bac_client.ini'
-                ]
-            )
-        ],
         ext_modules=EmptyListWithLength(),
         install_requires=[
             "bacpypes>=0.18.0",
