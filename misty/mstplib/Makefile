@@ -27,7 +27,7 @@ OBJFILES:= $(patsubst %.c,%.o,$(OBJFILES))
 
 
 libmstp.a: $(SRCFILES)
-	gcc -c $(INCLUDES) $(CFLAGS) $(SRCFILES)
+	clang -c $(INCLUDES) $(CFLAGS) $(SRCFILES)
 	ar rcs libmstp.a $(OBJFILES)
 	rm -f $(OBJFILES)
 
@@ -36,7 +36,7 @@ libmstp_agent.so: mstp_agent.c libmstp.a
 	gcc -shared $(INCLUDES) $(CFLAGS) mstp_agent.c -L. -lmstp -lpthread -lm -o libmstp_agent.so
 
 mstp_test: mstp_agent.c libmstp.a
-	gcc -static -DTEST_BIN $(INCLUDES) $(CFLAGS) mstp_agent.c -L. -lmstp -lpthread -lm -o mstp_test
+	clang -static -DTEST_BIN $(INCLUDES) $(CFLAGS) mstp_agent.c -L. -lmstp -lpthread -lm -o mstp_test
 
 
 clean_build: clean all

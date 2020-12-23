@@ -54,7 +54,7 @@
 #include <termios.h>
 #include <unistd.h>
 #include <sched.h>
-#include <linux/serial.h>       /* for struct serial_struct */
+//#include <linux/serial.h>       /* for struct serial_struct */
 #include <math.h>       /* for calculation of custom divisor */
 #include <sys/ioctl.h>
 /* for scandir */
@@ -94,7 +94,9 @@ static char *RS485_Port_Name = "/dev/ttyS2";
 /* serial I/O settings */
 static struct termios RS485_oldtio;
 /* for setting custom divisor */
+#if 0
 static struct serial_struct RS485_oldserial;
+#endif
 /* indicator of special baud rate */
 static bool RS485_SpecBaud = false;
 
@@ -551,6 +553,7 @@ void RS485_Check_UART_Data(
     }
 }
 
+#if 0
 void RS485_Cleanup(
     void)
 {
@@ -559,8 +562,16 @@ void RS485_Cleanup(
     ioctl(RS485_Handle, TIOCSSERIAL, &RS485_oldserial);
     close(RS485_Handle);
 }
+#else
+void RS485_Cleanup(
+    void)
+{
+}
+#endif
 
 
+
+#if 0
 void RS485_Initialize(
     void)
 {
@@ -640,7 +651,69 @@ void RS485_Initialize(
     FIFO_Init(&Rx_FIFO, Rx_Buffer, sizeof(Rx_Buffer));
     printf("=success!\n");
 }
+#else
+void RS485_Initialize(
+    void)
+{
+    struct termios newtio;
+    float baud_error = 0.0;
 
+    printf("RS485: Initializing %s", RS485_Port_Name);
+    /*
+       Open device for reading and writing.
+       Blocking mode - more CPU effecient
+     */
+    RS485_Handle = open(RS485_Port_Name, O_RDWR | O_NOCTTY /*| O_NDELAY */ );
+    if (RS485_Handle < 0) {
+        perror(RS485_Port_Name);
+        exit(-1);
+    }
+#if 0
+    /* non blocking for the read */
+    fcntl(RS485_Handle, F_SETFL, FNDELAY);
+#else
+    /* efficient blocking for the read */
+    fcntl(RS485_Handle, F_SETFL, 0);
+#endif
+    /* save current serial port settings */
+    tcgetattr(RS485_Handle, &RS485_oldtio);
+    /* we read the old serial setup */
+    // ioctl(RS485_Handle, TIOCGSERIAL, &RS485_oldserial);
+    /* we need a copy of existing settings */
+    // memcpy(&newserial, &RS485_oldserial, sizeof(struct serial_struct));
+    /* clear struct for new port settings */
+    bzero(&newtio, sizeof(newtio));
+    /*
+       BAUDRATE: Set bps rate. You could also use cfsetispeed and cfsetospeed.
+       CRTSCTS : output hardware flow control (only used if the cable has
+       all necessary lines. See sect. 7 of Serial-HOWTO)
+       CS8     : 8n1 (8bit,no parity,1 stopbit)
+       CLOCAL  : local connection, no modem contol
+       CREAD   : enable receiving characters
+     */
+    newtio.c_cflag = RS485_Baud | CS8 | CLOCAL | CREAD | RS485MOD;
+    /* Raw input */
+    newtio.c_iflag = 0;
+    /* Raw output */
+    newtio.c_oflag = 0;
+    /* no processing */
+    newtio.c_lflag = 0;
+    /* activate the settings for the port after flushing I/O */
+    tcsetattr(RS485_Handle, TCSAFLUSH, &newtio);
+    printf(" at Baud Rate %u", RS485_Get_Baud_Rate());
+    /* destructor */
+    atexit(RS485_Cleanup);
+    /* flush any data waiting */
+    usleep(200000);
+    tcflush(RS485_Handle, TCIOFLUSH);
+    /* ringbuffer */
+    FIFO_Init(&Rx_FIFO, Rx_Buffer, sizeof(Rx_Buffer));
+    printf("=success!\n");
+}
+
+#endif
+
+#if 0
 /* Print in a format for Wireshark ExtCap */
 void RS485_Print_Ports(void)
 {
@@ -709,6 +782,11 @@ void RS485_Print_Ports(void)
         free(namelist);
     }
 }
+#else
+void RS485_Print_Ports(void)
+{
+}
+#endif
 
 #ifdef TEST_RS485
 #include <string.h>

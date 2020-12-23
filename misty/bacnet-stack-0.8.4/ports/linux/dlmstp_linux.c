@@ -40,6 +40,7 @@
 /* OS Specific include */
 #include "net.h"
 #include "ringbuf.h"
+#include <dispatch/dispatch.h>
 
 /** @file linux/dlmstp.c  Provides Linux-specific DataLink functions for MS/TP. */
 
@@ -123,7 +124,7 @@ void dlmstp_cleanup(
     close(poSharedData->RS485_Handle);
 
     pthread_cond_destroy(&poSharedData->Received_Frame_Flag);
-    sem_destroy(&poSharedData->Receive_Packet_Flag);
+    dispatch_release(poSharedData->Receive_Packet_Flag);
     pthread_cond_destroy(&poSharedData->Master_Done_Flag);
     pthread_mutex_destroy(&poSharedData->Received_Frame_Mutex);
     pthread_mutex_destroy(&poSharedData->Master_Done_Mutex);
@@ -175,7 +176,7 @@ uint16_t dlmstp_receive(
     unsigned timeout)
 {       /* milliseconds to wait for a packet */
     uint16_t pdu_len = 0;
-    struct timespec abstime;
+    dispatch_time_t dis_time;
     int rv = 0;
     SHARED_MSTP_DATA *poSharedData;
     struct mstp_port_struct_t *mstp_port =
@@ -190,8 +191,8 @@ uint16_t dlmstp_receive(
     (void) max_pdu;
     /* see if there is a packet available, and a place
        to put the reply (if necessary) and process it */
-    get_abstime(&abstime, timeout);
-    rv = sem_timedwait(&poSharedData->Receive_Packet_Flag, &abstime);
+    dis_time = dispatch_time(DISPATCH_TIME_NOW, timeout*1000000);
+    rv = dispatch_semaphore_wait(poSharedData->Receive_Packet_Flag, dis_time);
     if (rv == 0) {
         if (poSharedData->Receive_Packet.ready) {
             if (poSharedData->Receive_Packet.pdu_len) {
@@ -356,7 +357,7 @@ uint16_t MSTP_Put_Receive(
             mstp_port->SourceAddress);
         poSharedData->Receive_Packet.pdu_len = mstp_port->DataLength;
         poSharedData->Receive_Packet.ready = true;
-        sem_post(&poSharedData->Receive_Packet_Flag);
+        dispatch_semaphore_signal(poSharedData->Receive_Packet_Flag);
     }
 
     return pdu_len;
@@ -870,7 +871,7 @@ bool dlmstp_init(
     void *poPort,
     char *ifname)
 {
-    unsigned long hThread = 0;
+    pthread_t hThread;
     int rv = 0;
     SHARED_MSTP_DATA *poSharedData;
     struct mstp_port_struct_t *mstp_port =
@@ -894,7 +895,7 @@ bool dlmstp_init(
     /* initialize packet queue */
     poSharedData->Receive_Packet.ready = false;
     poSharedData->Receive_Packet.pdu_len = 0;
-    rv = sem_init(&poSharedData->Receive_Packet_Flag, 0, 0);
+    poSharedData->Receive_Packet_Flag  = dispatch_semaphore_create(0);
     if (rv != 0) {
         fprintf(stderr,
             "MS/TP Interface: %s\n cannot allocate PThread Condition.\n",
