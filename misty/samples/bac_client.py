@@ -540,7 +540,6 @@ def main():
         '_max_masters': int(args.ini.max_masters),
         '_baudrate': int(args.ini.baudrate),
         '_maxinfo': int(args.ini.maxinfo),
-        '_mstp_dir': str(args.ini.mstp_dir),
     }
 
     if hasattr(args.ini, 'mstpdbgfile'):
