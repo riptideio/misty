@@ -26,8 +26,7 @@
 
 #include "mstp.h"
 /*#include "dlmstp.h" */
-#ifdef __APPLE__
-#else
+#ifdef __linux__ 
 #include "bits/pthreadtypes.h"
 #endif
 #include <semaphore.h>
@@ -81,7 +80,8 @@ typedef struct shared_mstp_data {
      */
 #ifdef __APPLE__
     dispatch_semaphore_t Receive_Packet_Flag;
-#else
+#endif
+#ifdef __linux__ 
     sem_t Receive_Packet_Flag;
 #endif
     /* mechanism to wait for a frame in state machine */

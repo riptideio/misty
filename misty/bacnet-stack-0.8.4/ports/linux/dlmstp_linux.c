@@ -128,7 +128,8 @@ void dlmstp_cleanup(
     pthread_cond_destroy(&poSharedData->Received_Frame_Flag);
 #ifdef __APPLE__
     dispatch_release(poSharedData->Receive_Packet_Flag);
-#else
+#endif
+#ifdef __linux__ 
     sem_destroy(&poSharedData->Receive_Packet_Flag);
 #endif
     pthread_cond_destroy(&poSharedData->Master_Done_Flag);
@@ -184,7 +185,8 @@ uint16_t dlmstp_receive(
     uint16_t pdu_len = 0;
 #ifdef __APPLE__
     dispatch_time_t dis_time;
-#else
+#endif
+#ifdef __linux__ 
     struct timespec abstime;
 #endif
     int rv = 0;
@@ -204,7 +206,8 @@ uint16_t dlmstp_receive(
 #ifdef __APPLE__
     dis_time = dispatch_time(DISPATCH_TIME_NOW, timeout*1000000);
     rv = dispatch_semaphore_wait(poSharedData->Receive_Packet_Flag, dis_time);
-#else
+#endif
+#ifdef __linux__ 
     get_abstime(&abstime, timeout);
     rv = sem_timedwait(&poSharedData->Receive_Packet_Flag, &abstime);
 #endif
@@ -374,7 +377,8 @@ uint16_t MSTP_Put_Receive(
         poSharedData->Receive_Packet.ready = true;
 #ifdef __APPLE__
         dispatch_semaphore_signal(poSharedData->Receive_Packet_Flag);
-#else
+#endif
+#ifdef __linux__ 
         sem_post(&poSharedData->Receive_Packet_Flag);
 #endif
     }
@@ -916,7 +920,8 @@ bool dlmstp_init(
     poSharedData->Receive_Packet.pdu_len = 0;
 #ifdef __APPLE__
     poSharedData->Receive_Packet_Flag  = dispatch_semaphore_create(0);
-#else
+#endif
+#ifdef __linux__ 
     rv = sem_init(&poSharedData->Receive_Packet_Flag, 0, 0);
 #endif
     if (rv != 0) {
@@ -947,10 +952,12 @@ bool dlmstp_init(
     fcntl(poSharedData->RS485_Handle, F_SETFL, 0);
 #endif
 
-        struct termios options;
+#ifdef __APPLE__
+      struct termios options;
+
       tcgetattr(poSharedData->RS485_Handle, &options);
-      cfsetispeed(&options, B38400);
-      cfsetospeed(&options, B38400);
+      cfsetispeed(&options,  poSharedData->RS485_Baud);
+      cfsetospeed(&options,  poSharedData->RS485_Baud);
 
       //No parity 8N1
       options.c_cflag &= ~PARENB;
@@ -968,11 +975,11 @@ bool dlmstp_init(
       options.c_cflag |= (CLOCAL | CREAD);
 
       if( tcsetattr(poSharedData->RS485_Handle, TCSANOW, &options) < 0) {
-        printf("Cannot set the attributes\n");
+        perror(poSharedData->RS485_Port_Name);
+        exit(-1);
       }
-
-
-#if 0
+#endif
+#ifdef __linux__ 
     /* save current serial port settings */
     tcgetattr(poSharedData->RS485_Handle, &poSharedData->RS485_oldtio);
     /* clear struct for new port settings */
@@ -998,7 +1005,6 @@ bool dlmstp_init(
 #endif
 
     /* flush any data waiting */
-
     usleep(200000);
     tcflush(poSharedData->RS485_Handle, TCIOFLUSH);
     /* ringbuffer */

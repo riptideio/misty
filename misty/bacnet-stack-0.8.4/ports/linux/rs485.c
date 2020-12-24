@@ -54,7 +54,7 @@
 #include <termios.h>
 #include <unistd.h>
 #include <sched.h>
-#ifndef __APPLE__
+#ifdef __linux__ 
 #include <linux/serial.h>       /* for struct serial_struct */
 #endif
 #include <math.h>       /* for calculation of custom divisor */
@@ -96,7 +96,7 @@ static char *RS485_Port_Name = "/dev/ttyS2";
 /* serial I/O settings */
 static struct termios RS485_oldtio;
 /* for setting custom divisor */
-#ifndef __APPLE__
+#ifdef __linux__ 
 static struct serial_struct RS485_oldserial;
 #endif
 /* indicator of special baud rate */
@@ -400,8 +400,6 @@ void RS485_Send_Frame(
     int greska;
     SHARED_MSTP_DATA *poSharedData = NULL;
 
-    fprintf(stderr, "Sending");
-
     if (mstp_port) {
         poSharedData = (SHARED_MSTP_DATA *) mstp_port->UserData;
     }
@@ -557,7 +555,7 @@ void RS485_Check_UART_Data(
     }
 }
 
-#ifndef __APPLE__
+#ifdef __linux__ 
 void RS485_Cleanup(
     void)
 {
@@ -566,7 +564,8 @@ void RS485_Cleanup(
     ioctl(RS485_Handle, TIOCSSERIAL, &RS485_oldserial);
     close(RS485_Handle);
 }
-#else
+#endif
+#ifdef __APPLE__
 void RS485_Cleanup(
     void)
 {
@@ -579,23 +578,26 @@ void RS485_Initialize(
     void)
 {
     struct termios newtio;
-#ifdef __APPLE__
-#else
+#ifdef __linux__ 
     struct serial_struct newserial;
 #endif
     float baud_error = 0.0;
 
-    fprintf(stderr, "RS485: Initializing %s \n", RS485_Port_Name);
+    printf("RS485: Initializing %s", RS485_Port_Name);
     /*
        Open device for reading and writing.
        Blocking mode - more CPU effecient
      */
+#ifdef __APPLE__
     RS485_Handle = open(RS485_Port_Name, O_NONBLOCK|O_RDWR | O_NOCTTY /*| O_NDELAY */ );
+#endif
+#ifdef __linux__ 
+    RS485_Handle = open(RS485_Port_Name, O_RDWR | O_NOCTTY /*| O_NDELAY */ );
+#endif
     if (RS485_Handle < 0) {
         perror(RS485_Port_Name);
         exit(-1);
     }
-    fprintf(stderr, "RS485: Initializing 111111      %s", RS485_Port_Name);
 #if 0
     /* non blocking for the read */
     fcntl(RS485_Handle, F_SETFL, FNDELAY);
@@ -603,16 +605,9 @@ void RS485_Initialize(
     /* efficient blocking for the read */
     fcntl(RS485_Handle, F_SETFL, 0);
 #endif
-    fprintf(stderr, "RS485: Initializing 222222      %s", RS485_Port_Name);
     /* save current serial port settings */
     tcgetattr(RS485_Handle, &RS485_oldtio);
-#ifndef __APPLE__
-    /* we read the old serial setup */
-    ioctl(RS485_Handle, TIOCGSERIAL, &RS485_oldserial);
-    /* we need a copy of existing settings */
-    memcpy(&newserial, &RS485_oldserial, sizeof(struct serial_struct));
-#endif
-
+#ifdef __APPLE__
     struct termios options;
       tcgetattr(RS485_Handle, &options);
       cfsetispeed(&options, B38400);
@@ -637,10 +632,13 @@ void RS485_Initialize(
         printf("Cannot set the attributes\n");
       }
 
+#endif
 
-
-#if 0
-    fprintf(stderr, "RS485: Initializing 333333      %s", RS485_Port_Name);
+#ifdef __linux__ 
+    /* we read the old serial setup */
+    ioctl(RS485_Handle, TIOCGSERIAL, &RS485_oldserial);
+    /* we need a copy of existing settings */
+    memcpy(&newserial, &RS485_oldserial, sizeof(struct serial_struct));
     /* clear struct for new port settings */
     bzero(&newtio, sizeof(newtio));
     /*
@@ -658,12 +656,8 @@ void RS485_Initialize(
     newtio.c_oflag = 0;
     /* no processing */
     newtio.c_lflag = 0;
-
     /* activate the settings for the port after flushing I/O */
     tcsetattr(RS485_Handle, TCSAFLUSH, &newtio);
-    fprintf(stderr, "RS485: Initializing 444444      %s", RS485_Port_Name);
-#endif
-#ifndef __APPLE__
     if (RS485_SpecBaud) {
         /* 76800, custom divisor must be set */
         newserial.flags |= ASYNC_SPD_CUST;
@@ -685,7 +679,7 @@ void RS485_Initialize(
         ioctl(RS485_Handle, TIOCSSERIAL, &newserial);
     }
 #endif
-    fprintf(stderr, " at Baud Rate %u", RS485_Get_Baud_Rate());
+    printf(" at Baud Rate %u", RS485_Get_Baud_Rate());
     /* destructor */
     atexit(RS485_Cleanup);
     /* flush any data waiting */
@@ -693,10 +687,10 @@ void RS485_Initialize(
     tcflush(RS485_Handle, TCIOFLUSH);
     /* ringbuffer */
     FIFO_Init(&Rx_FIFO, Rx_Buffer, sizeof(Rx_Buffer));
-    fprintf(stderr, "=success!\n");
+    printf("=success!\n");
 }
 
-#ifndef __APPLE__
+#ifdef __linux__ 
 /* Print in a format for Wireshark ExtCap */
 void RS485_Print_Ports(void)
 {
@@ -765,7 +759,9 @@ void RS485_Print_Ports(void)
         free(namelist);
     }
 }
-#else
+#endif
+
+#ifdef __APPLE__
 void RS485_Print_Ports(void)
 {
 }

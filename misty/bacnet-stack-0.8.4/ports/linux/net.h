@@ -78,7 +78,7 @@
 #include <net/route.h>
 #include <net/if.h>
 #include <net/if_arp.h>
-#ifndef __APPLE__
+#ifdef __linux__ 
 #include <features.h>   /* for the glibc version number */
 #if __GLIBC__ >= 2 && __GLIBC_MINOR >= 1
 #include <netpacket/packet.h>
