@@ -1,1 +1,1 @@
-socat PTY,link=/var/tmp/ptyp0 PTY,link=/var/tmp/ttyp0
+socat PTY,link=/var/tmp/ptyp0,ospeed=38400,ispeed=38400 PTY,link=/var/tmp/ttyp0,ospeed=38400,ispeed=38400

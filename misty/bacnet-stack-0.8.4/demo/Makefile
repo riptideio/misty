@@ -25,7 +25,7 @@ BACNET_LIB=-L$(BACNET_LIB_DIR),-l$(BACNET_LIB_NAME)
 ifeq (${BACNET_PORT},linux)
 PFLAGS = -pthread
 TARGET_EXT =
-SYSTEM_LIB=-lc,-lm
+SYSTEM_LIB=-lc,-lgcc,-lrt,-lm
 endif
 ifeq (${BACNET_PORT},bsd)
 PFLAGS = -pthread

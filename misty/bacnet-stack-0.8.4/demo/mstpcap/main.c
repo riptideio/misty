@@ -1169,10 +1169,8 @@ int main(
         return 0;
     }
     atexit(cleanup);
-    fprintf(stdout, "going to RS485_Initialize\n");
     RS485_Initialize();
     timer_init();
-    fprintf(stdout, "out of RS485_Initialize\n");
     if (!Wireshark_Capture) {
         fprintf(stdout, "mstpcap: Using %s for capture at %ld bps.\n",
             RS485_Interface(), (long) RS485_Get_Baud_Rate());
