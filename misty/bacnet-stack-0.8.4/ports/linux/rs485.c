@@ -690,7 +690,6 @@ void RS485_Initialize(
     printf("=success!\n");
 }
 
-#ifdef __linux__ 
 /* Print in a format for Wireshark ExtCap */
 void RS485_Print_Ports(void)
 {
@@ -703,7 +702,9 @@ void RS485_Print_Ports(void)
     char *driver_name = NULL;
     int fd = 0;
     bool valid_port = false;
+#ifdef __linux__
     struct serial_struct serinfo;
+#endif
 
     // Scan through /sys/class/tty - it contains all tty-devices in the system
     n = scandir(sysdir, &namelist, NULL, NULL);
@@ -725,6 +726,7 @@ void RS485_Print_Ports(void)
                     if (readlink(device_dir, buffer, sizeof(buffer)) > 0) {
                         valid_port = false;
                         driver_name=basename(buffer);
+#ifdef __linux__
                         if (strcmp(driver_name,"serial8250") == 0) {
                             // serial8250-devices must be probed
                             snprintf(device_dir, sizeof(device_dir),
@@ -745,6 +747,9 @@ void RS485_Print_Ports(void)
                         } else {
                             valid_port = true;
                         }
+#else
+                        valid_port = true;
+#endif
                         if (valid_port) {
                             // print full absolute file path
                             printf("interface {value=/dev/%s}"
@@ -759,13 +764,7 @@ void RS485_Print_Ports(void)
         free(namelist);
     }
 }
-#endif
 
-#ifdef __APPLE__
-void RS485_Print_Ports(void)
-{
-}
-#endif
 
 #ifdef TEST_RS485
 #include <string.h>
