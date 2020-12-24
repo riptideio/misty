@@ -35,7 +35,7 @@ typedef struct thread_args {
     int port_index;
 }thread_args_t;
 
-#define DEBUG 1
+//#define DEBUG 1
 #ifdef DEBUG
 #define debug_printf printf
 void debug_print_packet(unsigned char *pdu, int pdu_len)
