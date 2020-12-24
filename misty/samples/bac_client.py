@@ -10,6 +10,7 @@ from __future__ import absolute_import
 from __future__ import print_function
 import sys
 import os
+import six
 
 from bacpypes.debugging import bacpypes_debugging, ModuleLogger
 from bacpypes.consolelogging import ConfigArgumentParser
@@ -390,7 +391,11 @@ class BacnetClientConsoleCmd(ConsoleCmd):
 
             # enable debug
             mstp_lib=this_application.mux.directPort.mstp_lib
-            mstp_lib.enable_debug_flag(fname)
+            if six.PY3:
+                mstp_lib.enable_debug_flag(six.ensure_binary(fname))
+            else:
+                mstp_lib.enable_debug_flag(fname)
+
         elif dbg_type == 'disable':
             mstp_lib=this_application.mux.directPort.mstp_lib
             mstp_lib.disable_debug_flag()
