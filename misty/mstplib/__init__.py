@@ -17,6 +17,7 @@ import atexit
 import glob
 import tempfile
 import six
+import platform
 from ctypes import cdll
 
 
@@ -199,7 +200,8 @@ class MSTPDirector(asyncore.dispatcher, Server, ServiceAccessPoint):
 
         # Call the library to init the mstp_agent
         dirname=os.path.dirname(__file__)
-        libmstp_path=os.path.join(dirname, "libmstp_agent.so")
+        libname = "libmstp_agent_{}.so".format(platform.system().lower())
+        libmstp_path=os.path.join(dirname, libname)
         mstp_lib = cdll.LoadLibrary(libmstp_path)
         MSTPDirector.mstp_lib = mstp_lib
 
