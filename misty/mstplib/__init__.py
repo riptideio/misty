@@ -233,7 +233,10 @@ class MSTPDirector(asyncore.dispatcher, Server, ServiceAccessPoint):
 
         if hasattr(self.localDevice, '_mstpdbgfile'):
             fname = self.localDevice._mstpdbgfile
-            mstp_lib.enable_debug_flag(fname)
+            if six.PY3:
+                mstp_lib.enable_debug_flag(six.ensure_binary(fname))
+            else:
+                mstp_lib.enable_debug_flag(fname)
 
         if six.PY3:
             interface_devname_b = six.ensure_binary(interface_devname)
