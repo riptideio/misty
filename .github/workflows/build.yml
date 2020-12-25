@@ -2,8 +2,6 @@ name: Build
 
 on: [push, pull_request]
 
-env:
-  CIBW_SKIP="cp35-* cp37-* cp38-* cp39-* pp*-*"
 
 jobs:
   build_wheels:
@@ -28,6 +26,8 @@ jobs:
       - name: Build wheels
         run: |
           python -m cibuildwheel --output-dir wheelhouse
+        env:
+          CIBW_SKIP="cp35-* cp37-* cp38-* cp39-* pp*-*"
 
       - uses: actions/upload-artifact@v2
         with:
