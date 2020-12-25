@@ -60,7 +60,8 @@ def setup_packages():
         },
         package_data={
             'misty': [
-                'mstplib/libmstp_agent.so'
+                'mstplib/libmstp_agent_darwin.so',
+                'mstplib/libmstp_agent_linux.so'
             ]
         },
         packages=['misty', 'misty.mstplib'],
