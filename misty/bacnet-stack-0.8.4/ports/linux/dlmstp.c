@@ -671,7 +671,7 @@ void dlmstp_get_broadcast_address(
 bool dlmstp_init(
     char *ifname)
 {
-    unsigned long hThread = 0;
+    pthread_t hThread = 0;
     int rv = 0;
 
     /* initialize PDU queue */

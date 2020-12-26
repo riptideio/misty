@@ -1228,8 +1228,8 @@ int main(
         }
         if (!Wireshark_Capture) {
             if (!(packet_count % 100)) {
-                fprintf(stdout, "\r%hu packets, %hu invalid frames", packet_count,
-                    Invalid_Frame_Count);
+                fprintf(stdout, "\r%hu packets, %hu invalid frames", (unsigned short)packet_count,
+                    (unsigned short)Invalid_Frame_Count);
             }
             if (packet_count >= 65535) {
                 packet_statistics_print();

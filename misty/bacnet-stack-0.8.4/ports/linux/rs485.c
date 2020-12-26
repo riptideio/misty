@@ -88,7 +88,12 @@ static int RS485_Handle = -1;
 static unsigned int RS485_Baud = B38400;
 /* serial port name, /dev/ttyS0,
   /dev/ttyUSB0 for USB->RS485 from B&B Electronics USOPTL4 */
+#ifdef __APPLE__
+static char *RS485_Port_Name = "/dev/tty.usbserial-AH032FE7";
+#endif
+#ifdef __linux__
 static char *RS485_Port_Name = "/dev/ttyS2";
+#endif
 /* some terminal I/O have RS-485 specific functionality */
 #ifndef RS485MOD
 #define RS485MOD 0
@@ -577,11 +582,11 @@ void RS485_Cleanup(
 void RS485_Initialize(
     void)
 {
-    struct termios newtio;
 #ifdef __linux__ 
+    struct termios newtio;
     struct serial_struct newserial;
-#endif
     float baud_error = 0.0;
+#endif
 
     printf("RS485: Initializing %s", RS485_Port_Name);
     /*
@@ -700,9 +705,9 @@ void RS485_Print_Ports(void)
     char buffer[1024];
     char device_dir[1024];
     char *driver_name = NULL;
-    int fd = 0;
     bool valid_port = false;
 #ifdef __linux__
+    int fd = 0;
     struct serial_struct serinfo;
 #endif
 

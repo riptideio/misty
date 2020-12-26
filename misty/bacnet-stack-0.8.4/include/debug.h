@@ -54,4 +54,7 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
+void enable_debug_flag(char *fname);
+void status_debug_flag(void);
+void disable_debug_flag(void);
 #endif
