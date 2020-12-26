@@ -560,22 +560,16 @@ void RS485_Check_UART_Data(
     }
 }
 
-#ifdef __linux__ 
 void RS485_Cleanup(
     void)
 {
     /* restore the old port settings */
     tcsetattr(RS485_Handle, TCSANOW, &RS485_oldtio);
+#ifdef __linux__ 
     ioctl(RS485_Handle, TIOCSSERIAL, &RS485_oldserial);
+#endif
     close(RS485_Handle);
 }
-#endif
-#ifdef __APPLE__
-void RS485_Cleanup(
-    void)
-{
-}
-#endif
 
 
 

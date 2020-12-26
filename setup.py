@@ -33,7 +33,7 @@ def setup_packages():
 
     meta_data = dict(
         name="misty",
-        version='0.0.12',
+        version='0.0.13',
         description='MSTP support for bacpypes',
         scripts=[
             'bin/CommandableMixin',

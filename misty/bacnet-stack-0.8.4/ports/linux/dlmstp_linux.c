@@ -931,7 +931,6 @@ bool dlmstp_init(
         exit(1);
     }
 
-    struct termios newtio;
     printf("RS485: Initializing %s", poSharedData->RS485_Port_Name);
     /*
        Open device for reading and writing.
@@ -980,6 +979,7 @@ bool dlmstp_init(
       }
 #endif
 #ifdef __linux__ 
+    struct termios newtio;
     /* save current serial port settings */
     tcgetattr(poSharedData->RS485_Handle, &poSharedData->RS485_oldtio);
     /* clear struct for new port settings */
