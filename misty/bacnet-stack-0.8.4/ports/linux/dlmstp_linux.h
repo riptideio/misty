@@ -26,7 +26,9 @@
 
 #include "mstp.h"
 /*#include "dlmstp.h" */
+#ifdef __linux__ 
 #include "bits/pthreadtypes.h"
+#endif
 #include <semaphore.h>
 
 #include <stdbool.h>
@@ -37,6 +39,9 @@
 #include <termios.h>
 #include "fifo.h"
 #include "ringbuf.h"
+#ifdef __APPLE__
+#include <dispatch/dispatch.h>
+#endif
 /* defines specific to MS/TP */
 /* preamble+type+dest+src+len+crc8+crc16 */
 #define MAX_HEADER (2+1+1+1+2+1+2)
@@ -73,7 +78,12 @@ typedef struct shared_mstp_data {
     /*
        RT_SEM Receive_Packet_Flag;
      */
+#ifdef __APPLE__
+    dispatch_semaphore_t Receive_Packet_Flag;
+#endif
+#ifdef __linux__ 
     sem_t Receive_Packet_Flag;
+#endif
     /* mechanism to wait for a frame in state machine */
     /*
        RT_COND Received_Frame_Flag;

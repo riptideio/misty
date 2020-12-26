@@ -40,6 +40,9 @@
 /* OS Specific include */
 #include "net.h"
 #include "ringbuf.h"
+#ifdef __APPLE__
+#include <dispatch/dispatch.h>
+#endif
 
 /** @file linux/dlmstp.c  Provides Linux-specific DataLink functions for MS/TP. */
 
@@ -123,7 +126,12 @@ void dlmstp_cleanup(
     close(poSharedData->RS485_Handle);
 
     pthread_cond_destroy(&poSharedData->Received_Frame_Flag);
+#ifdef __APPLE__
+    dispatch_release(poSharedData->Receive_Packet_Flag);
+#endif
+#ifdef __linux__ 
     sem_destroy(&poSharedData->Receive_Packet_Flag);
+#endif
     pthread_cond_destroy(&poSharedData->Master_Done_Flag);
     pthread_mutex_destroy(&poSharedData->Received_Frame_Mutex);
     pthread_mutex_destroy(&poSharedData->Master_Done_Mutex);
@@ -175,7 +183,12 @@ uint16_t dlmstp_receive(
     unsigned timeout)
 {       /* milliseconds to wait for a packet */
     uint16_t pdu_len = 0;
+#ifdef __APPLE__
+    dispatch_time_t dis_time;
+#endif
+#ifdef __linux__ 
     struct timespec abstime;
+#endif
     int rv = 0;
     SHARED_MSTP_DATA *poSharedData;
     struct mstp_port_struct_t *mstp_port =
@@ -190,8 +203,14 @@ uint16_t dlmstp_receive(
     (void) max_pdu;
     /* see if there is a packet available, and a place
        to put the reply (if necessary) and process it */
+#ifdef __APPLE__
+    dis_time = dispatch_time(DISPATCH_TIME_NOW, timeout*1000000);
+    rv = dispatch_semaphore_wait(poSharedData->Receive_Packet_Flag, dis_time);
+#endif
+#ifdef __linux__ 
     get_abstime(&abstime, timeout);
     rv = sem_timedwait(&poSharedData->Receive_Packet_Flag, &abstime);
+#endif
     if (rv == 0) {
         if (poSharedData->Receive_Packet.ready) {
             if (poSharedData->Receive_Packet.pdu_len) {
@@ -356,7 +375,12 @@ uint16_t MSTP_Put_Receive(
             mstp_port->SourceAddress);
         poSharedData->Receive_Packet.pdu_len = mstp_port->DataLength;
         poSharedData->Receive_Packet.ready = true;
+#ifdef __APPLE__
+        dispatch_semaphore_signal(poSharedData->Receive_Packet_Flag);
+#endif
+#ifdef __linux__ 
         sem_post(&poSharedData->Receive_Packet_Flag);
+#endif
     }
 
     return pdu_len;
@@ -870,7 +894,7 @@ bool dlmstp_init(
     void *poPort,
     char *ifname)
 {
-    unsigned long hThread = 0;
+    pthread_t hThread;
     int rv = 0;
     SHARED_MSTP_DATA *poSharedData;
     struct mstp_port_struct_t *mstp_port =
@@ -894,7 +918,12 @@ bool dlmstp_init(
     /* initialize packet queue */
     poSharedData->Receive_Packet.ready = false;
     poSharedData->Receive_Packet.pdu_len = 0;
+#ifdef __APPLE__
+    poSharedData->Receive_Packet_Flag  = dispatch_semaphore_create(0);
+#endif
+#ifdef __linux__ 
     rv = sem_init(&poSharedData->Receive_Packet_Flag, 0, 0);
+#endif
     if (rv != 0) {
         fprintf(stderr,
             "MS/TP Interface: %s\n cannot allocate PThread Condition.\n",
@@ -902,7 +931,6 @@ bool dlmstp_init(
         exit(1);
     }
 
-    struct termios newtio;
     printf("RS485: Initializing %s", poSharedData->RS485_Port_Name);
     /*
        Open device for reading and writing.
@@ -922,6 +950,36 @@ bool dlmstp_init(
     /* efficient blocking for the read */
     fcntl(poSharedData->RS485_Handle, F_SETFL, 0);
 #endif
+
+#ifdef __APPLE__
+      struct termios options;
+
+      tcgetattr(poSharedData->RS485_Handle, &options);
+      cfsetispeed(&options,  poSharedData->RS485_Baud);
+      cfsetospeed(&options,  poSharedData->RS485_Baud);
+
+      //No parity 8N1
+      options.c_cflag &= ~PARENB;
+      options.c_cflag &= ~CSTOPB;
+      options.c_cflag &= ~CSIZE;
+      options.c_cflag |= CS8;
+
+      //No flow control
+      options.c_cflag &= ~CRTSCTS;
+
+      //Turn off s/w flow control
+      options.c_iflag &= ~(IXON | IXOFF | IXANY);
+
+      //Turn on read and ignore ctrl lines
+      options.c_cflag |= (CLOCAL | CREAD);
+
+      if( tcsetattr(poSharedData->RS485_Handle, TCSANOW, &options) < 0) {
+        perror(poSharedData->RS485_Port_Name);
+        exit(-1);
+      }
+#endif
+#ifdef __linux__ 
+    struct termios newtio;
     /* save current serial port settings */
     tcgetattr(poSharedData->RS485_Handle, &poSharedData->RS485_oldtio);
     /* clear struct for new port settings */
@@ -943,6 +1001,9 @@ bool dlmstp_init(
     newtio.c_lflag = 0;
     /* activate the settings for the port after flushing I/O */
     tcsetattr(poSharedData->RS485_Handle, TCSAFLUSH, &newtio);
+
+#endif
+
     /* flush any data waiting */
     usleep(200000);
     tcflush(poSharedData->RS485_Handle, TCIOFLUSH);

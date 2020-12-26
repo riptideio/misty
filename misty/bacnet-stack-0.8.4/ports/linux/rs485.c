@@ -54,7 +54,9 @@
 #include <termios.h>
 #include <unistd.h>
 #include <sched.h>
+#ifdef __linux__ 
 #include <linux/serial.h>       /* for struct serial_struct */
+#endif
 #include <math.h>       /* for calculation of custom divisor */
 #include <sys/ioctl.h>
 /* for scandir */
@@ -86,7 +88,12 @@ static int RS485_Handle = -1;
 static unsigned int RS485_Baud = B38400;
 /* serial port name, /dev/ttyS0,
   /dev/ttyUSB0 for USB->RS485 from B&B Electronics USOPTL4 */
+#ifdef __APPLE__
+static char *RS485_Port_Name = "/dev/tty.usbserial-AH032FE7";
+#endif
+#ifdef __linux__
 static char *RS485_Port_Name = "/dev/ttyS2";
+#endif
 /* some terminal I/O have RS-485 specific functionality */
 #ifndef RS485MOD
 #define RS485MOD 0
@@ -94,7 +101,9 @@ static char *RS485_Port_Name = "/dev/ttyS2";
 /* serial I/O settings */
 static struct termios RS485_oldtio;
 /* for setting custom divisor */
+#ifdef __linux__ 
 static struct serial_struct RS485_oldserial;
+#endif
 /* indicator of special baud rate */
 static bool RS485_SpecBaud = false;
 
@@ -556,24 +565,34 @@ void RS485_Cleanup(
 {
     /* restore the old port settings */
     tcsetattr(RS485_Handle, TCSANOW, &RS485_oldtio);
+#ifdef __linux__ 
     ioctl(RS485_Handle, TIOCSSERIAL, &RS485_oldserial);
+#endif
     close(RS485_Handle);
 }
+
 
 
 void RS485_Initialize(
     void)
 {
+#ifdef __linux__ 
     struct termios newtio;
     struct serial_struct newserial;
     float baud_error = 0.0;
+#endif
 
     printf("RS485: Initializing %s", RS485_Port_Name);
     /*
        Open device for reading and writing.
        Blocking mode - more CPU effecient
      */
+#ifdef __APPLE__
+    RS485_Handle = open(RS485_Port_Name, O_NONBLOCK|O_RDWR | O_NOCTTY /*| O_NDELAY */ );
+#endif
+#ifdef __linux__ 
     RS485_Handle = open(RS485_Port_Name, O_RDWR | O_NOCTTY /*| O_NDELAY */ );
+#endif
     if (RS485_Handle < 0) {
         perror(RS485_Port_Name);
         exit(-1);
@@ -587,6 +606,34 @@ void RS485_Initialize(
 #endif
     /* save current serial port settings */
     tcgetattr(RS485_Handle, &RS485_oldtio);
+#ifdef __APPLE__
+    struct termios options;
+      tcgetattr(RS485_Handle, &options);
+      cfsetispeed(&options, B38400);
+      cfsetospeed(&options, B38400);
+
+      //No parity 8N1
+      options.c_cflag &= ~PARENB;
+      options.c_cflag &= ~CSTOPB;
+      options.c_cflag &= ~CSIZE;
+      options.c_cflag |= CS8;
+
+      //No flow control
+      options.c_cflag &= ~CRTSCTS;
+
+      //Turn off s/w flow control
+      options.c_iflag &= ~(IXON | IXOFF | IXANY);
+
+      //Turn on read and ignore ctrl lines
+      options.c_cflag |= (CLOCAL | CREAD);
+
+      if( tcsetattr(RS485_Handle, TCSANOW, &options) < 0) {
+        printf("Cannot set the attributes\n");
+      }
+
+#endif
+
+#ifdef __linux__ 
     /* we read the old serial setup */
     ioctl(RS485_Handle, TIOCGSERIAL, &RS485_oldserial);
     /* we need a copy of existing settings */
@@ -630,6 +677,7 @@ void RS485_Initialize(
         /* if all goes well, set new divisor */
         ioctl(RS485_Handle, TIOCSSERIAL, &newserial);
     }
+#endif
     printf(" at Baud Rate %u", RS485_Get_Baud_Rate());
     /* destructor */
     atexit(RS485_Cleanup);
@@ -651,9 +699,11 @@ void RS485_Print_Ports(void)
     char buffer[1024];
     char device_dir[1024];
     char *driver_name = NULL;
-    int fd = 0;
     bool valid_port = false;
+#ifdef __linux__
+    int fd = 0;
     struct serial_struct serinfo;
+#endif
 
     // Scan through /sys/class/tty - it contains all tty-devices in the system
     n = scandir(sysdir, &namelist, NULL, NULL);
@@ -675,6 +725,7 @@ void RS485_Print_Ports(void)
                     if (readlink(device_dir, buffer, sizeof(buffer)) > 0) {
                         valid_port = false;
                         driver_name=basename(buffer);
+#ifdef __linux__
                         if (strcmp(driver_name,"serial8250") == 0) {
                             // serial8250-devices must be probed
                             snprintf(device_dir, sizeof(device_dir),
@@ -695,6 +746,9 @@ void RS485_Print_Ports(void)
                         } else {
                             valid_port = true;
                         }
+#else
+                        valid_port = true;
+#endif
                         if (valid_port) {
                             // print full absolute file path
                             printf("interface {value=/dev/%s}"
@@ -709,6 +763,7 @@ void RS485_Print_Ports(void)
         free(namelist);
     }
 }
+
 
 #ifdef TEST_RS485
 #include <string.h>

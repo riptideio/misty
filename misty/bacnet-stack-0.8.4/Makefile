@@ -40,10 +40,16 @@ DEFINES += $(MAKE_DEFINE)
 # BACnet Ports Directory
 BACNET_PORT ?= linux
 
+ADDL_WARN_FLAGS =
+UNAME := $(shell uname)
+ifeq ($(UNAME), Darwin)
+ADDL_WARN_FLAGS = -Wno-self-assign
+endif
+
 # Default compiler settings
 OPTIMIZATION = -Os
 DEBUGGING =
-WARNINGS = -Wall -Wmissing-prototypes
+WARNINGS = -Wall $(ADDL_WARN_FLAGS)
 ifeq (${BUILD},debug)
 OPTIMIZATION = -O0
 DEBUGGING = -g -DDEBUG_ENABLED=1

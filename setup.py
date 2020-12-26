@@ -33,7 +33,7 @@ def setup_packages():
 
     meta_data = dict(
         name="misty",
-        version='0.0.11',
+        version='0.0.13',
         description='MSTP support for bacpypes',
         scripts=[
             'bin/CommandableMixin',
@@ -60,7 +60,8 @@ def setup_packages():
         },
         package_data={
             'misty': [
-                'mstplib/libmstp_agent.so'
+                'mstplib/libmstp_agent_darwin.so',
+                'mstplib/libmstp_agent_linux.so'
             ]
         },
         packages=['misty', 'misty.mstplib'],

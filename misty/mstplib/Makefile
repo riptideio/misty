@@ -4,7 +4,18 @@
 
 all: libmstp_agent.so
 
-CFLAGS=-g -Wall -DPRINT_ENABLED=1 -DDEBUG_ENABLED -DBACAPP_ALL -DBACFILE -DINTRINSIC_REPORTING -DBACNET_PROPERTY_LISTS=1 -DBACDL_MSTP=1 -DBBMD_ENABLED=1 -DWEAK_FUNC=  -fPIC
+libname=libmstp_agent_linux.so
+ADDL_WARN_FLAGS =
+UNAME := $(shell uname)
+ifeq ($(UNAME), Linux)
+libname=libmstp_agent_linux.so
+endif
+ifeq ($(UNAME), Darwin)
+ADDL_WARN_FLAGS = -Wno-self-assign
+libname=libmstp_agent_darwin.so
+endif
+
+CFLAGS=-g -Wall $(ADDL_WARN_FLAGS) -DPRINT_ENABLED=1 -DDEBUG_ENABLED -DBACAPP_ALL -DBACFILE -DINTRINSIC_REPORTING -DBACNET_PROPERTY_LISTS=1 -DBACDL_MSTP=1 -DBBMD_ENABLED=1 -DWEAK_FUNC=  -fPIC
 
 BACNET_STACK_DIR=../bacnet-stack-0.8.4
 INCLUDES=-I$(BACNET_STACK_DIR)/include -I$(BACNET_STACK_DIR)/ports/linux
@@ -34,6 +45,8 @@ libmstp.a: $(SRCFILES)
 libmstp_agent.so: mstp_agent.c libmstp.a
 	@echo "Making mstp agent shared library"
 	gcc -shared $(INCLUDES) $(CFLAGS) mstp_agent.c -L. -lmstp -lpthread -lm -o libmstp_agent.so
+	@echo "copying it"
+	cp libmstp_agent.so $(libname)
 
 mstp_test: mstp_agent.c libmstp.a
 	gcc -static -DTEST_BIN $(INCLUDES) $(CFLAGS) mstp_agent.c -L. -lmstp -lpthread -lm -o mstp_test
