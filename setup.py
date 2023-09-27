@@ -3,8 +3,8 @@ Copyright (c) 2018 by Riptide I/O
 All rights reserved.
 """
 
-import os
 import sys
+import subprocess
 
 from setuptools import setup
 from wheel.bdist_wheel import bdist_wheel
@@ -14,7 +14,6 @@ class BinaryDistWheel(bdist_wheel):
     def finalize_options(self):
         bdist_wheel.finalize_options(self)
         self.root_is_pure = False
-
 
 # This creates a list which is empty but returns a length of 1.
 # Should make the wheel a binary distribution and platlib compliant.
@@ -30,6 +29,11 @@ def setup_packages():
         " that work on MS/TP Networks. The BIP (BACnet IP ) "
         "Applications can be easily ported to use misty."
     )
+
+    # Build libmstp on-the-fly so we don't need to put it in the package
+    protoc_command = ["make", "clean_build"]
+    if subprocess.call(protoc_command, cwd='misty/mstplib') != 0:
+        sys.exit(-1)
 
     meta_data = dict(
         name="misty",
@@ -58,13 +62,12 @@ def setup_packages():
         package_dir={
             'misty': 'misty'
         },
+        packages=['misty', 'misty.mstplib'],
         package_data={
             'misty': [
-                'mstplib/libmstp_agent_darwin.so',
-                'mstplib/libmstp_agent_linux.so'
+                'mstplib/libmstp_agent.so'
             ]
         },
-        packages=['misty', 'misty.mstplib'],
         ext_modules=EmptyListWithLength(),
         install_requires=[
             "bacpypes>=0.18.0",
