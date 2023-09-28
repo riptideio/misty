@@ -200,7 +200,7 @@ class MSTPDirector(asyncore.dispatcher, Server, ServiceAccessPoint):
 
         # Call the library to init the mstp_agent
         dirname=os.path.dirname(__file__)
-        libname = "libmstp_agent_{}.so".format(platform.system().lower())
+        libname = "libmstp_agent.so"
         libmstp_path=os.path.join(dirname, libname)
         mstp_lib = cdll.LoadLibrary(libmstp_path)
         MSTPDirector.mstp_lib = mstp_lib
