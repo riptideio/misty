@@ -356,6 +356,16 @@ void init(unsigned char *buf, char *dev_name, char *mstp_dir)
     g_port_index ++;
 }
 
+void cleanup()
+{
+    port_info_t *port_info_ptr;
+    for (int i=0; i<g_port_index; i++)
+    {
+        port_info_ptr = &port_info_array[i];
+        dlmstp_cleanup(&port_info_ptr->mstp_port);
+    }
+}
+
 #if TEST_BIN
 
 void usage(char **argv)

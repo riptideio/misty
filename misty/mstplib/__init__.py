@@ -371,6 +371,7 @@ class MSTPDirector(asyncore.dispatcher, Server, ServiceAccessPoint):
     def close_socket(self):
         """Close the socket."""
         if _debug: MSTPDirector._debug("close_socket")
+        MSTPDirector.mstp_lib.cleanup()
         self.socket.close()
         self.close()
         self.socket = None
