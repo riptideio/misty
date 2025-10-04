@@ -69,7 +69,7 @@ def setup_packages():
         url="https://github.com/riptideio/misty",
         packages=["misty", "misty.mstplib"],
         package_dir={"misty": "misty"},
-        include_package_data=True,          # pull in files via MANIFEST.in
+        include_package_data=False,          # pull in files via MANIFEST.in
         cmdclass={"bdist_wheel": BinaryDistWheel, "build_py": build_py},
         install_requires=["bacpypes>=0.18.0", "six>=1.15.0"],
         scripts=[
@@ -84,6 +84,12 @@ def setup_packages():
             "bin/cp_ini",
         ],
         zip_safe=False,
+        package_data={
+            'misty': [
+                'mstplib/libmstp_agent_darwin.so',
+                'mstplib/libmstp_agent_linux.so'
+            ]
+        },
     )
 
 if __name__ == "__main__":
