@@ -1,6 +1,5 @@
 
 include README.md
-recursive-include misty/mstplib Makefile *.c *.h
-# If you vendor bacnet-stack under misty/, include it too:
-recursive-include misty/bacnet-stack-0.8.4 *.*
+recursive-include src Makefile *.c *.h
+recursive-include third_party/bacnet-stack-0.8.4 *.*
 
