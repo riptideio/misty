@@ -115,12 +115,13 @@ def main():
     ravo1 = RandomAnalogValueObject(
         objectIdentifier=('analogValue', 1), objectName='Random1',
         eventMessageTexts=ArrayOf(CharacterString)(["to", "infinity", "and", "beyond"]),
-        )
+        units=62
+    )
     _log.debug("    - ravo1: %r", ravo1)
 
     ravo2 = RandomAnalogValueObject(
-        objectIdentifier=('analogValue', 2), objectName='Random2'
-        )
+        objectIdentifier=('analogValue', 2), objectName='Random2', units=62
+    )
     _log.debug("    - ravo2: %r", ravo2)
 
     # add it to the device

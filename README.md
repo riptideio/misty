@@ -1,4 +1,3 @@
-
 #  misty
 
 The misty project helps build [bacpypes](https://github.com/JoelBender/bacpypes)   applications that work on MS/TP Networks. The existing bacpypes BIP (BACnet IP ) applications can be easily ported to to use misty and work on MS/TP Networks.
@@ -27,123 +26,49 @@ The following image shows the idea on which the misty is based.
 
 ![misty concept](screenshots/misty_concept.png)
 
-# Installation and Usage for Users
+# Installation and Usage 
 
-This section talks about the installation for people who are interested in using misty as a product to interact with the BACnet devices connected on a serial port to the Linux machine. 
+This section talks about the installation for people who are interested in using misty as a product to interact with the BACnet devices connected on a serial port to the Linux machine.
 
-(1) Install the misty package in your python environment
-```
-$ pip install misty
-```
-(2) copy the ini file required for running the BACnet client by running the cp_ini command. This copies a template of ini file required for a BACnet client at the specified file location
-```
-$ cp_ini -t client ./bc.ini
-```
-(3) Edit the **bc.ini** file to specify the interface, max_masters, baudrate, maxinfo.  A sample bc.ini is shown below.
-```ini
-[BACpypes]
-objectName: BACClient
-address: 25
-interface:/dev/ttyS5
-max_masters: 127
-baudrate: 38400
-maxinfo:1
-objectIdentifier: 599
-maxApduLengthAccepted: 1024
-segmentationSupported: segmentedBoth
-vendorIdentifier: 15
-foreignPort: 0
-foreignBBMD: 128.253.109.254
-foreignTTL: 30
-```
-(4) Run the BACnet client (bc) program. Execute 'whois' and other commands found by using help
-```
-$ sudo bc --ini ./bc.ini
-Initialized the socket
-mac_address = 25
-max master = 127
-baud rate = 38400
-max info frames = 1
-RS485: Initializing /dev/ttyS5=success!
-MS/TP MAC: 19
-MS/TP Max_Master: 7F
-MS/TP Max_Info_Frames: 1
-mstp_path=/var/tmp/ma_CrAvEt/mstpttyS5
+## Prereqs (Linux / Raspberry Pi)
 
-> whois
-pduSource = <Address 8>
-iAmDeviceIdentifier = ('device', 1008)
-maxAPDULengthAccepted = 480
-segmentationSupported = noSegmentation
-vendorID = 28
-pduSource = <Address 9>
-iAmDeviceIdentifier = ('device', 1009)
-maxAPDULengthAccepted = 480
-segmentationSupported = noSegmentation
-vendorID = 28
-
-> help
-
-Documented commands (type help <topic>):
-========================================
-EOF      bugin   discover  gc    iam      mstpstat  rtn    whois
-buggers  bugout  exit      help  mstpdbg  read      shell  write
+```bash
+sudo apt-get update
+sudo apt-get install -y build-essential   # gcc, make
+# optional: serial access for /dev/tty*
+sudo usermod -a -G dialout $USER && echo "re-login for group change to take effect"
+```
+## Create a virtualenv
+```bash
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
 ```
 
-(5) Apart from the bacnet client (bc) program, the other available programs from the misty package are the following. All of them use ini file supplied on the command line.
+## Clone and install misty
+```bash
+git clone https://github.com/riptideio/misty.git
+cd misty
+# builds the C library and installs in editable mode
+python -m pip install . 
+```
+Force a clean, local rebuild if you see stale files
 
-bs (bacnet server), WhoIsIAm, ReadWriteProperty, ReadPropertyMultipleServer, ReadPropertyMultiple, ReadProperty, CommandableMixin
+```bash
+pip cache purge
+rm -rf build dist *.egg-info src/build
+python -m pip install --no-cache-dir --force-reinstall .
+```
+Verify Installation
+```bash
+# This should show misty
+pip list
+```
+## Running BACnet client
 
-
-# Installation and Usage for Developers
-
-This section talks about the installation for people who are interested in learning about misty and experiment with changes. This requires knowledge of Python Programming language and familiarity with Linux operating system as a user.  
-
-(1) Install the bacpypes package in your python environment
+Start the bacnet client program present in the **samples** directory
 ```
-$ pip install bacpypes==0.18.0
-```
-(2) Clone the MSTP Agent repository with the following command:
-```
-$ git clone https://github.com/riptideio/misty.git
-```
-(3) Make the MSTP Agent library using the following commands. This requires the C compiler and make utilities to be installed.
-```
-$ cd misty/mstplib
-$ make clean_build
-```
-(4) Edit the **bac_client.ini** file in the **misty/samples** directory to set the following values as appropriate to your setup.
-
-*  MS/TP address
-*  interface
-*  baudrate
-*  max masters
-* max info
-
-A sample bac_client.ini file is shown below
-```ini
-[BACpypes]
-objectName: BACClient
-; MSTP Local address
-address: 25
-; The serial port device
-interface:/dev/ttyS0
-; other mstp config parameters max_masters, baudrate, maxinfo
-max_masters: 127
-baudrate: 38400
-maxinfo:1
-objectIdentifier: 599
-maxApduLengthAccepted: 1024
-segmentationSupported: segmentedBoth
-vendorIdentifier: 15
-foreignPort: 0
-foreignBBMD: 128.253.109.254
-foreignTTL: 30
-```
-(5) Start the bacnet client program present in the **misty/samples** directory
-```
-$ export PYTHONPATH=$PWD
-$ python misty/samples/bac_client.py --ini misty/samples/bac_client.ini
+python samples/bac_client.py --ini samples/bac_client.ini
 ```
 The bacnet client program console offers commands to do basic BACnet commands like
 
@@ -160,27 +85,23 @@ A sample interaction using the bac_client.py with KMC AppStat devices is shown  
 ![misty with kmc](screenshots/misty_with_kmc.png)
 
 
-
-# Testing MSTP  Applications
+## Running Samples without Hardware Devices
 
 The **socat** utility is useful  to test the MSTP applications without having  Hardware devices.
 
 The following is the procedure for using *socat* to test the interaction of BACnet server and BACnet client.
 
-
 (1) Execute the socat utility to create two connected virtual serial ports ptyp0 and ttyp0 in a terminal window
-```
-$ socat PTY,link=/var/tmp/ptyp0,b38400 PTY,link=/var/tmp/ttyp0,b38400
+```bash
+socat PTY,link=/var/tmp/ptyp0,b38400 PTY,link=/var/tmp/ttyp0,b38400
 ```
 (2) On a new terminal window , start the BACnet server on ptyp0. The configuration file bac_server.ini has the interface ptyp0 configured at 38400 baud rate.
-```
-$ export PYTHONPATH=$PWD
-$ python misty/samples/ReadPropertyMultipleServer.py --ini misty/samples/bac_server.ini
+```bash
+python samples/ReadPropertyMultipleServer.py --ini samples/bac_server.ini
 ```
 (3) On a new terminal window, start the BACnet client on ttyp0. The configuration file bac_client.ini has the interface ptyp0 configured at 38400 baud rate.
-```
-$ export PYTHONPATH=$PWD
-$ python misty/samples/bac_client.py --ini misty/samples/bac_client.ini
+```bash
+python samples/bac_client.py --ini samples/bac_client.ini
 ```
 Now we can use any of the commands supported on the BACnet client console to send messages to BACnet Server. For example
 *  whois
@@ -261,62 +182,3 @@ The misty/samples directory contains some bacpypes IP applications ported to use
 The following are the known limitations of MSTP Agent Project
 
 *  Support for Linux only
-
-
-# Snap build, installation and Usage
-
-Snap build (requires Snapcraft to be installed)
-
-(1) Run the build_snap script; this should create the misty snap (it would clean and recreate if snap already exists). In this case, the snap created is named misty_0.0.X_amd64.snap.
-```
-$ snap-builder:~/misty$ ./build_snap
-```
-(2) To install the Snap - execute the below command
-```
-$ snap install misty_0.0.4_amd64.snap --devmode
-misty 0.0.4 installed
-```
-(3) The Misty snap exposes two commands: bc and props
-
-*  Run the props command to setup the ini file that is required to run Misty. Executing the props command should open up an ini file in vi editor. Use sudo to edit the file.
-*  Once the ini file has been setup, run the misty.bc command to execute bacnet client.
-```
-$ sudo misty.props
-$ sudo misty.bc
-Initialized the socket
-mac_address = 25
-max master = 127
-baud rate = 38400
-max info frames = 1
-successfully able to open the device /dev/ttyS2
-RS485: Initializing /dev/ttyS2=success!
-MS/TP MAC: 19
-MS/TP Max_Master: 7F
-MS/TP Max_Info_Frames: 1
-mstp_path=/var/tmp/ma_ADtI4I/mstpttyS2
-```
-(4) Sample commands to verify Misty.
-```
-> whois
-pduSource = <Address 2>
-iAmDeviceIdentifier = ('device', 1002)
-maxAPDULengthAccepted = 480
-segmentationSupported = noSegmentation
-vendorID = 28
-pduSource = <Address 3>
-iAmDeviceIdentifier = ('device', 1003)
-maxAPDULengthAccepted = 480
-segmentationSupported = noSegmentation
-vendorID = 28
-> discover 3 1003
-162
-('device', 1003)
-('analogInput', 1)
-('analogInput', 2)
-> read 3 analogValue:1 presentValue
-74.9051208496
-> write 3 analogValue:2 presentValue 50
-ack
-> read 3 analogValue:2 presentValue
-50.0
-```
