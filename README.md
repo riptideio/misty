@@ -85,6 +85,8 @@ A sample interaction using the bac_client.py with KMC AppStat devices is shown  
 ![misty with kmc](screenshots/misty_with_kmc.png)
 
 
+## Running Samples without Hardware Devices
+
 The **socat** utility is useful  to test the MSTP applications without having  Hardware devices.
 
 The following is the procedure for using *socat* to test the interaction of BACnet server and BACnet client.
@@ -180,4 +182,3 @@ The misty/samples directory contains some bacpypes IP applications ported to use
 The following are the known limitations of MSTP Agent Project
 
 *  Support for Linux only
-
