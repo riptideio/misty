@@ -242,7 +242,7 @@ class BACnetClientApplication(MSTPSimpleApplication):
         if not isinstance(apdu, ReadPropertyACK):
             context.completed(RuntimeError("read property ack expected"))
             return
-        
+
         if apdu.propertyArrayIndex == 0:
             context.expected_count = apdu.propertyValue.cast_out(Unsigned)
             context.index_0_checked = True
@@ -813,42 +813,6 @@ class BACnetClientApplication(MSTPSimpleApplication):
 #
 
 
-def test_write(app):
-    device_id = 123
-    obj_type = "analogValue"
-    instance_no = 1
-    prop_id = "presentValue"
-
-    value = app.get_value_for_prop(device_id, obj_type, instance_no, prop_id)
-
-    if value:
-        value = random.uniform(30, 95)
-        logger.info(
-            f"Writing {device_id} {obj_type}:{instance_no} "
-            f"{prop_id} {value}"
-        )
-        app.write_property(
-            device_id,
-            obj_type,
-            instance_no=instance_no,
-            prop_id=prop_id,
-            value=value,
-        )
-        logger.info(f"value = {value}")
-
-def test_get_values_for_all_props(app):
-    device_id = 123
-    obj_type = "analogValue"
-    instance_no = 1
-
-    values = app.get_values_for_all_props(device_id, obj_type, instance_no)
-    logger.info(
-        f"property values for device={device_id} obj_type={obj_type} "
-        f"instance_no={instance_no}"
-    )
-    pprint.pprint(values)
-
-
 def main():
     my_format = (
         "%(asctime)s|%(levelname)s|%(name)s:"
@@ -859,20 +823,44 @@ def main():
         format=my_format
     )
 
-    '''
-    address: 25
-    interface:/var/tmp/ttyp0
-    max_masters: 127
-    baudrate: 38400
-    maxinfo:1
-    '''
+    parser = argparse.ArgumentParser(
+        description="Example script for parsing address and interface."
+    )
+
+    parser.add_argument(
+        "--address",
+        type=int,
+        default=25,
+        help="Device address (default: 25)"
+    )
+
+    parser.add_argument(
+        "--interface",
+        type=str,
+        default="/var/tmp/ttyp0",
+        help="Device interface path (default: /var/tmp/ttyp0)"
+    )
+
+    parser.add_argument(
+        "--baudrate",
+        type=int,
+        default=38400,
+        help="baudrate (default: 38400)"
+    )
+
+    args = parser.parse_args()
+
+    print(f"Address: {args.address}")
+    print(f"Interface: {args.interface}")
+    print(f"Baudrate: {args.baudrate}")
+
 
     # make a device object
     mstp_args = {
-        '_address': 25,
-        '_interface': "/var/tmp/ttyp0",
+        '_address': args.address,
+        '_interface': args.interface,
         '_max_masters': 127,
-        '_baudrate': 38400,
+        '_baudrate': args.baudrate,
         '_maxinfo': 1
     }
     mstp_args["vendorIdentifier"] = 15
@@ -883,8 +871,7 @@ def main():
     this_device = LocalDeviceObject(**mstp_args)
 
     # make a simple application
-    address = 25
-    app = BACnetClientApplication(this_device, address)
+    app = BACnetClientApplication(this_device, args.address)
     app.start()
     PulseTask(app, interval=10 * 1000)
     run()
@@ -892,3 +879,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
